@@ -84,7 +84,7 @@ npm run dev                    # http://localhost:3000 — login page should ren
 
 ### 2. Supabase project
 
-The user creates a **new** project (free tier). Do not use the existing project "fadytosson's AI M Tool" — that is another product's database.
+The user creates a **new** project (free tier) under the **rogeh2012@gmail.com** account, which owns all of this app's infrastructure. Never reuse an existing project from another account — this database holds only the school.
 
 Then, with the Supabase MCP (or by pasting into the SQL Editor), run `supabase/schema.sql` once. Verify:
 
