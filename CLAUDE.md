@@ -6,7 +6,10 @@ Project brief for Claude Code. Read this fully before touching anything.
 
 QR-code attendance for the **School of Praise & Prayer** (مدرسة التسبيح والصلاة), a 5-week church program in Alexandria, Egypt.
 
-- Runs **Fri 18 Sept – Fri 16 Oct 2026**. Fridays have **1 session**, Saturdays have **2 sessions**.
+- Runs **Fri 18 Sept – Fri 16 Oct 2026** — 8 days, 11 sessions. Fridays have **1 session**, Saturdays have **2 sessions**.
+  - Sept: **Fri 18, Sat 19, Fri 25, Sat 26** · Oct: **Fri 2, Fri 9, Sat 10, Fri 16**.
+  - There is **no** session on Sat 3 Oct or Sat 17 Oct. The app doesn't know the calendar — it just
+    offers Session 1 on Fridays and 1+2 otherwise — so on a non-school day nobody scans and nothing is recorded.
 - **80–100 students**, each with a personal QR code (printed card and/or PNG sent on WhatsApp).
 - **One admin** signs in on a phone, picks the session, opens the camera, scans each student.
 - Every scan is stored with the student, the date, the session number, and the exact time in **Cairo time**.
@@ -37,6 +40,7 @@ app/
 components/
   AuthGate.tsx          redirects to /login without a session
   Shell.tsx             header + tab nav + sign out, wraps AuthGate
+  ManualEntry.tsx       search a student by name → mark present (no QR needed), via record_scan()
   Scanner.tsx           html5-qrcode wrapper (client-only, loaded with next/dynamic ssr:false)
   QrCard.tsx            QR card component + downloadPng() (900×1100 canvas PNG for WhatsApp)
 lib/
@@ -62,7 +66,7 @@ attendance id, student_id → students, session_date (date, Cairo), session_no (
 
 ## Decisions that must survive any edit
 
-1. **Time**: store UTC, display with `Intl.DateTimeFormat` + `timeZone: "Africa/Cairo"`. Never use a fixed +2/+3 offset — Egypt has DST and it switches during the school (late October). The session date is also computed in Cairo (`cairoToday()`), not from the phone's clock.
+1. **Time**: store UTC, display with `Intl.DateTimeFormat` + `timeZone: "Africa/Cairo"`. Never use a fixed +2/+3 offset — Egypt observes DST, and it ends in late October, just after the school finishes; a hard-coded offset would be wrong the moment that changes. The session date is also computed in Cairo (`cairoToday()`), not from the phone's clock.
 2. **One scan per student per session** is enforced by the database unique constraint. The UI additionally ignores the same token re-read within 3 seconds. Don't move the duplicate check to the client only.
 3. **Camera needs HTTPS.** Any deploy or preview URL must be https or the scanner silently fails.
 4. **Arabic names**: QR cards and PNGs are rendered with browser canvas/HTML on purpose — server-side PDF libraries (pdfkit, reportlab without reshaper) break Arabic letter joining. Don't "improve" this by generating PDFs in Node.
@@ -159,6 +163,11 @@ Every later `git push` to `main` redeploys.
 
 - Friday: the picker shows only Session 1. Saturday: Session 1 and Session 2 — pick before opening the camera.
 - Wrong scan: Attendance tab → × next to the row.
+- **Forgot their QR code**: Scan tab → **Add manually** → type part of the name → Add. It goes through the same
+  `record_scan()` as the camera, so it is recorded identically — there is no "manual" marking, present is present.
+  Arabic search is forgiving: typing `احمد` finds `أحمد`, `فاطمه` finds `فاطمة`.
+- **Missed someone on a day that already passed**: Attendance tab → pick the date → **Add manually** under that
+  session's heading. The day comes from the date picker, the session from the block it sits under.
 - New student mid-school: Students → Add → QR → Download PNG.
 - Lost card: Students → search → QR (show the phone screen, or resend the PNG).
 - Free-tier Supabase pauses after 7 idle days. Fri→Sat→Fri is 6 days so it's fine; if a week is skipped, restore the project from the dashboard before the next session.
