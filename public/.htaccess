@@ -1,0 +1,32 @@
+# Only used by the static-export deploy (STATIC_EXPORT=1 npm run build -> upload out/).
+# Files in public/ are copied to the root of out/, so this lands next to index.html.
+# Harmless when the app runs as a Node app instead — Next never reads it.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Next 16.3.4 exports the client-navigation payload to  .../__next.<segment>/__PAGE__.txt
+  # but the router requests  .../__next.<segment>.__PAGE__.txt  (dot, not slash). Without this
+  # every tab click 404s and falls back to a full page reload. Must come before the .html rule.
+  RewriteRule ^(.*)/__next\.([^/.]+)\.__PAGE__\.txt$ /$1/__next.$2/__PAGE__.txt [L]
+
+  # `next build` with output:"export" writes /login.html, /students.html, ...
+  # The app links to extensionless paths (/login, /students), so map one to the other.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^(.+?)/?$ /$1.html [L]
+</IfModule>
+
+ErrorDocument 404 /404.html
+
+# Hashed build assets are immutable; the HTML must never be cached or a deploy
+# would keep serving the previous version to anyone who already opened the app.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|woff2|ico|svg|png)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>

@@ -158,9 +158,23 @@ Every later `git push` to `main` redeploys.
 tells you to upgrade Next, which does not help. Look for the `GLIBC_2.29 not found` warning instead: their image is old,
 so every Next build there runs on the slower WASM SWC. That works, but it is why the config must stay `.js`.
 
-Fallback if the Node build ever becomes unworkable: set `output: "export"` in `next.config.js`, run `npm run build`
-**locally**, and upload `out/` to Hostinger as a plain static site. The app is 100% client-side, so it loses nothing —
-it only trades the git-push-to-deploy convenience for a manual upload.
+### 7b. Static deploy — the fallback that cannot hit Hostinger's build problems
+
+The app is 100% client-side, so it can ship as plain files with no Node process and no build on their machine:
+
+```bash
+STATIC_EXPORT=1 npm run build     # locally -> out/
+```
+
+Upload the **contents** of `out/` into `public_html` for the domain. Two things make this work, both already handled:
+
+- `public/.htaccess` (copied to `out/` by the build) maps extensionless URLs (`/login` → `login.html`).
+- That same file rewrites `.../__next.<seg>.__PAGE__.txt` → `.../__next.<seg>/__PAGE__.txt`. Next 16.3.4 exports the
+  client-navigation payload to a *directory* but the router requests it with a *dot*; without the rewrite every tab
+  click 404s and silently degrades to a full page reload. Verified fixed.
+
+Trade-off: no git-push-to-deploy. Re-run the build and re-upload after any change. For a 5-week project that is a fine
+deal, and it removes Hostinger's build image from the equation entirely.
 
 ### 8. Test on a real phone before 18 Sept
 

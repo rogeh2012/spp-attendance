@@ -5,9 +5,10 @@
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // The whole app is client-side (Supabase does the backend), so it also works as a
-  // static export on PHP-only hosting: set output: "export" and upload the `out/` folder.
-  // output: "export",
+  // The whole app is client-side (Supabase is the backend), so it can ship as plain static files
+  // with no Node server at all:  STATIC_EXPORT=1 npm run build  ->  upload the `out/` folder.
+  // Left off by default so a normal `npm run build` still produces the Node app.
+  output: process.env.STATIC_EXPORT ? "export" : undefined,
   reactStrictMode: true,
   // CLAUDE.md is the hand-written brief for this project; `next dev` otherwise appends its own
   // block to it on every run and leaves the tree dirty.
