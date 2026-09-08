@@ -14,7 +14,7 @@ QR-code attendance for the **School of Praise & Prayer** (مدرسة التسب�
 - **One admin** signs in on a phone, picks the session, opens the camera, scans each student.
 - Every scan is stored with the student, the date, the session number, and the exact time in **Cairo time**.
 - Attendance is viewed in the app and exported to **Excel/CSV**.
-- Live at **https://attendance.rajrooj.com** (Hostinger Node.js Web Apps, Business plan).
+- Live at **https://spp-attendance.rajrooj.com** (Hostinger Node.js Web Apps, Business plan).
 - Data is only needed for these 5 weeks; at the end, export to Excel and pause/delete the Supabase project.
 
 The app is already built and compiles clean. Your job is setup, deployment, and small changes — not a rewrite.
@@ -149,8 +149,8 @@ gh repo create spp-attendance --private --source=. --push
 1. hPanel → Websites → **Add Website** → **Node.js Apps** → Import Git Repository → authorize GitHub → pick `spp-attendance`, branch `main`.
 2. Build settings: install `npm ci`, build `npm run build`, start `npm run start -- -p $PORT`, Node.js **22**.
 3. Environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-4. Domain: attach **attendance.rajrooj.com**. If rajrooj.com's DNS is managed at Hostinger, the record is added for you. If it's on Cloudflare, add the record Hostinger shows (A or CNAME) with the proxy **off** (DNS only) until SSL is issued; it can be turned on afterwards.
-5. Wait for SSL, open https://attendance.rajrooj.com/login on a phone.
+4. Domain: attach **spp-attendance.rajrooj.com**. If rajrooj.com's DNS is managed at Hostinger, the record is added for you. If it's on Cloudflare, add the record Hostinger shows (A or CNAME) with the proxy **off** (DNS only) until SSL is issued; it can be turned on afterwards.
+5. Wait for SSL, open https://spp-attendance.rajrooj.com/login on a phone.
 
 Every later `git push` to `main` redeploys.
 
