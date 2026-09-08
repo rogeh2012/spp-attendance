@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+.env*
+!.env.example
+*.tsbuildinfo
+next-env.d.ts
+
+# project-specific
+spp-attendance.zip
+students.csv
+students.txt
+qr/
