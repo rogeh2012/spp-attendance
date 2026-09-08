@@ -24,7 +24,10 @@ The app is already built and compiles clean. Your job is setup, deployment, and 
 - **Next.js 16** (App Router, TypeScript), every page is a client component. No API routes, no middleware, no server code.
 - **Supabase**: Auth (email + password, signups disabled) and Postgres (RLS on, `record_scan()` RPC).
 - `html5-qrcode` for camera scanning, `qrcode` for QR rendering (canvas), `xlsx` (SheetJS) for export. Plain CSS in `app/globals.css`, no Tailwind.
-- The app is fully static-exportable: uncomment `output: "export"` in `next.config.ts` if it ever needs to run on PHP-only hosting.
+- The app is fully static-exportable: uncomment `output: "export"` in `next.config.js` if it ever needs to run on PHP-only hosting.
+- **The config is `next.config.js`, not `.ts` — keep it that way.** Hostinger's build image has glibc < 2.29, so Next
+  can't load its native SWC binary and falls back to WASM. A TypeScript config must be compiled by SWC before it can be
+  read, and that step fails there with `Cannot find module '<hash>.next.config'`. A `.js` config is read directly.
 
 ## Repo map
 
@@ -150,6 +153,14 @@ gh repo create spp-attendance --private --source=. --push
 5. Wait for SSL, open https://attendance.rajrooj.com/login on a phone.
 
 Every later `git push` to `main` redeploys.
+
+**If the build fails on Hostinger**, read past their "Diagnosis" box — it misreads SWC failures as a missing module and
+tells you to upgrade Next, which does not help. Look for the `GLIBC_2.29 not found` warning instead: their image is old,
+so every Next build there runs on the slower WASM SWC. That works, but it is why the config must stay `.js`.
+
+Fallback if the Node build ever becomes unworkable: set `output: "export"` in `next.config.js`, run `npm run build`
+**locally**, and upload `out/` to Hostinger as a plain static site. The app is 100% client-side, so it loses nothing —
+it only trades the git-push-to-deploy convenience for a manual upload.
 
 ### 8. Test on a real phone before 18 Sept
 
