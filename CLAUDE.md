@@ -154,9 +154,27 @@ gh repo create spp-attendance --private --source=. --push
 
 Every later `git push` to `main` redeploys.
 
-**If the build fails on Hostinger**, read past their "Diagnosis" box — it misreads SWC failures as a missing module and
-tells you to upgrade Next, which does not help. Look for the `GLIBC_2.29 not found` warning instead: their image is old,
-so every Next build there runs on the slower WASM SWC. That works, but it is why the config must stay `.js`.
+**Two things make this build work on Hostinger. Do not undo either.**
+
+Their build image has glibc < 2.29, so Next cannot load its native SWC binary and falls back to WASM. That fallback is
+fine for most of the toolchain but forces two constraints:
+
+1. **`next.config.js`, never `.ts`** — a TS config must be compiled by SWC before it can be read, and that step fails
+   there with `Cannot find module '<hash>.next.config'` (the hash is a temp file Next generates, not something missing
+   from the repo).
+2. **`"build": "next build --webpack"` in package.json** — Next 16 defaults to Turbopack, and unlike the rest of the
+   toolchain Turbopack has *no* WASM fallback: `Turbopack is not supported on this platform ... native bindings are not
+   available`. Webpack builds fine on WASM SWC, just slower.
+
+Expect these warnings on every Hostinger build; they are normal, not the failure:
+
+```
+⚠ Attempted to load @next/swc-linux-x64-gnu ... GLIBC_2.29 not found
+  Using cached swc package @next/swc-wasm-nodejs...
+```
+
+Also ignore Hostinger's "Diagnosis" box unless it names a real file — it twice misread these as a missing module and
+told us to invent a file with a hash for a name.
 
 ### 7b. Static deploy — the fallback that cannot hit Hostinger's build problems
 
